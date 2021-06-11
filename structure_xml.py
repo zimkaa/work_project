@@ -4,7 +4,7 @@ import decimal
 from loguru import logger
 from time import perf_counter
 
-import xlrd
+from xlrd import open_workbook  # type: ignore
 import xml.etree.ElementTree as ElT
 
 import config
@@ -17,8 +17,8 @@ def read_xlrd(name: str, sheet_index: int = 0) -> list:
     :param sheet_index: sheet to read
     :return: data list
     """
-    with xlrd.open_workbook(name, formatting_info=True,
-                            encoding_override='WINDOWS-1251') as rb:
+    with open_workbook(name, formatting_info=True,
+                       encoding_override='WINDOWS-1251') as rb:
         sheet = rb.sheet_by_index(int(sheet_index))
         result = [sheet.row_values(rownum) for rownum in range(sheet.nrows)]
     return result
