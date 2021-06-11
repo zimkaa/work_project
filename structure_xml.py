@@ -72,11 +72,11 @@ def create_rows_section_code3(data: list) -> list:
     return list_row
 
 
-def find_number_of_branches(records: list) -> list:
+def find_number_of_branches(records: list) -> int:
     """
     Find the number of "OKPO"
     :param records: data list
-    :return: okpo list
+    :return: count sheets
     """
     list_okpo = []
     for record in records[1:]:
