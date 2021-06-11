@@ -1,19 +1,11 @@
 # coding: cp1251
 
-
-# from decimal import Decimal
-from decimal import *
+import decimal
 from loguru import logger
 from time import perf_counter
 
-# from lxml import etree
-
-from xml.dom import minidom
-import xml.etree.ElementTree as ET
-
-
 import xlrd
-import xlwt
+import xml.etree.ElementTree as ElT
 
 import config
 
@@ -32,7 +24,7 @@ def read_xlrd(name: str, sheet_index: int = 0) -> list:
     return result
 
 
-def is_record(data: str) -> Decimal:
+def is_record(data: str) -> decimal.Decimal:
     """
     Rounding up
     :param data: data string
@@ -40,7 +32,7 @@ def is_record(data: str) -> Decimal:
     """
     if not data:
         data = '0.0'
-    return Decimal(data).quantize(Decimal('1.0'))
+    return decimal.Decimal(data).quantize(decimal.Decimal('1.0'))
 
 
 def create_rows_section_code5(data: list) -> list:
@@ -51,16 +43,15 @@ def create_rows_section_code5(data: list) -> list:
     """
     list_row = []
     for record in data[1:]:
-        # print(f"---------record---------\n{record}")
         if record[0]:
-            s1 = Decimal(record[0]).quantize(Decimal('1'))
-            code = Decimal(record[1]).quantize(Decimal('1'))
-            # print(f" 'code': {code} 's1': {s1}" )
+            s1 = decimal.Decimal(record[0]).quantize(decimal.Decimal('1'))
+            code = decimal.Decimal(record[1]).quantize(decimal.Decimal('1'))
             row = {"code": str(code), "s1": str(s1), "s2": str(record[2])}
             col_code1 = is_record(record[3])
             col_code2 = is_record(record[4])
             col_code3 = is_record(record[5]).quantize(
-                Decimal('1'), rounding=ROUND_HALF_UP).quantize(Decimal('1.0'))
+                decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)\
+                .quantize(decimal.Decimal('1.0'))
             col_code4 = is_record(record[6])
             list_row.append([row, col_code1, col_code2, col_code3, col_code4])
     return list_row
@@ -74,9 +65,7 @@ def create_rows_section_code3(data: list) -> list:
     """
     list_row = []
     for record in data[1:]:
-        # print(f"---------record---------\n{record}")
         if record[2]:
-            # print(f"---------record[2]---------\n{record[2]}")
             row = {"code": str(record[0])}
             col_code1 = record[2]
             list_row.append([row, col_code1])
@@ -90,60 +79,56 @@ def find_number_of_branches(records: list) -> list:
     :return: okpo list
     """
     list_okpo = []
-    # print(f"records0 {records[0]}")
-    # print(f"records1 {records[1]}")
     for record in records[1:]:
         if record[0] not in list_okpo:
             if record[0]:
-                # print(f"record0 {record[0]} ", end="")
                 okpo = str(int(record[0]))
-                # print(f" - okpo {okpo}")
                 list_okpo.append(okpo)
-    # print(list_okpo)
     return len(list_okpo)
 
 
 def main():
     start = perf_counter()
-    """open xml"""
-    tree = ET.parse(config.NAME_XML_FILE)
+    """Open xml"""
+    tree = ElT.parse(config.NAME_XML_FILE)
     root = tree.getroot()
 
-    """read xls"""
+    """Read xls"""
     name_xls_file = config.NAME_XLS_FILE
 
-    """Читается 10й лист 'раздел9'"""
+    """Reading list number 10 partition 9 """
     result = read_xlrd(name_xls_file, 10)
 
-    """finde all fils"""
-    print(find_number_of_branches(result))
+    """Finde all fils"""
+    logger.info(find_number_of_branches(result))
 
     section5 = root[1][4]
 
-    """delete all section "code='5'" in xml file"""
+    """Delete all section "code='5'" in xml file"""
     for row in section5.findall('row'):
         section5.remove(row)
 
-    """get list with row section 5"""
+    """Get list with row section 5"""
     list_section5 = create_rows_section_code5(result)
 
-    """create all section "code='5'" in xml file"""
+    """Create all section "code='5'" in xml file"""
     for section_row in list_section5:
-        row = ET.SubElement(section5, "row", attrib=section_row[0])
-        ET.SubElement(row, "col", attrib={"code": "1"}).text = str(section_row[1])
-        ET.SubElement(row, "col", attrib={"code": "2"}).text = str(section_row[2])
-        ET.SubElement(row, "col", attrib={"code": "3"}).text = str(section_row[3])
-        ET.SubElement(row, "col", attrib={"code": "4"}).text = str(section_row[4])
+        sort_et = ElT.SubElement
+        row = sort_et(section5, "row", attrib=section_row[0])
+        sort_et(row, "col", attrib={"code": "1"}).text = str(section_row[1])
+        sort_et(row, "col", attrib={"code": "2"}).text = str(section_row[2])
+        sort_et(row, "col", attrib={"code": "3"}).text = str(section_row[3])
+        sort_et(row, "col", attrib={"code": "4"}).text = str(section_row[4])
 
-    # """create xml"""
-    # tree.write('output.xml', encoding="WINDOWS-1251")
+    """Create xml"""
+    tree.write(config.CREATE_XML_NAME, encoding="WINDOWS-1251")
 
-    # tree = ET.parse('output.xml')
-    ET.indent(tree, space=" ", level=0)
-    tree.write('output2.xml', encoding="WINDOWS-1251")
+    """Create pritty xml"""
+    ElT.indent(tree, space=" ", level=0)
+    tree.write(config.CREATE_XML_NAME_2, encoding="WINDOWS-1251")
 
     stop = perf_counter() - start
-    logger.info(f"executinf time {stop}")
+    logger.info(f"Execution time {stop}")
 
 
 if __name__ == '__main__':
