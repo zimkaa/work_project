@@ -1,0 +1,10 @@
+.github/
+.vscode/
+__pycache__/
+env/
+
+setup.cfg
+*.env
+*.xls
+*.xml
+test.py
