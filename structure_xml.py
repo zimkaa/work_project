@@ -100,11 +100,10 @@ def main():
     result = read_xlrd(name_xls_file, 10)
 
     """Finde all fils"""
-    logger.info(find_number_of_branches(result))
-
-    section5 = root[1][4]
+    logger.info(f"count rows in sheet {find_number_of_branches(result)}")
 
     """Delete all section "code='5'" in xml file"""
+    section5 = root[1][4]
     for row in section5.findall('row'):
         section5.remove(row)
 
